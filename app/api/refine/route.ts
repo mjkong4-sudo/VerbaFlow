@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 export async function POST(request: NextRequest) {
   try {
-    let body: { selectedText?: string; feedback?: string };
+    let body: { selectedText?: string; feedback?: string; language?: string };
     try {
       body = await request.json();
     } catch {
@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const { selectedText, feedback } = body;
+    const { selectedText, feedback, language } = body;
+    const outputLanguage = language || "English";
 
     if (!selectedText?.trim() || !feedback?.trim()) {
       return NextResponse.json(
@@ -38,11 +39,11 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `You are a clear, natural writing assistant. The user has chosen a rewritten phrase and wants to refine it further. Apply their feedback and output exactly 1 improved version. Output only the refined text, no labels or explanation.`,
+          content: `You are a clear, natural writing assistant. The user has chosen a rewritten phrase and wants to refine it further. Apply their feedback and output exactly 1 improved version. Always output in ${outputLanguage}. Output only the refined text, no labels or explanation.`,
         },
         {
           role: "user",
-          content: `Current text:\n${selectedText.trim()}\n\nRefinement request:\n${feedback.trim()}`,
+          content: `Output language: ${outputLanguage}\n\nCurrent text:\n${selectedText.trim()}\n\nRefinement request:\n${feedback.trim()}`,
         },
       ],
       max_tokens: 512,

@@ -14,8 +14,18 @@ export const CONTEXTS = [
   "Other",
 ] as const;
 
+export const LANGUAGES = [
+  "English",
+  "Spanish",
+  "French",
+  "German",
+  "Korean",
+  "Japanese",
+] as const;
+
 export type Tone = (typeof TONES)[number];
 export type Context = (typeof CONTEXTS)[number];
+export type Language = (typeof LANGUAGES)[number];
 
 export interface RewriteOption {
   id: string;

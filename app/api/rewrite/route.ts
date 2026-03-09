@@ -3,7 +3,8 @@ import OpenAI from "openai";
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, tone, context } = await request.json();
+    const { text, tone, context, language } = await request.json();
+    const outputLanguage = language || "English";
 
     if (!text?.trim()) {
       return NextResponse.json(
@@ -30,13 +31,14 @@ export async function POST(request: NextRequest) {
     const systemPrompt = `You are a clear, natural writing assistant. Your job is to rewrite the user's rough or unclear text into natural expression that fits their chosen tone and context.
 
 Rules:
+- Always output in ${outputLanguage}. All 3 options must be written in ${outputLanguage}.
 - Produce exactly 3 distinct rewrite options, each on a new line.
 - Each option should be a complete, usable version of their message—not a fragment.
 - Vary the options: one might be slightly shorter, one more detailed, one with a different angle, so the user has real choice.
 - Preserve the user's intent and key information; only improve clarity and tone.
 - Do not add preamble, labels, or numbering. Output only the 3 lines of text, one per option.`;
 
-    const userPrompt = `Tone: ${tone || "Professional"}\nContext: ${context || "Email"}\n\nRewrite this into 3 natural options:\n\n${text.trim()}`;
+    const userPrompt = `Tone: ${tone || "Professional"}\nContext: ${context || "Email"}\nOutput language: ${outputLanguage}\n\nRewrite this into 3 natural options (in ${outputLanguage}):\n\n${text.trim()}`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",

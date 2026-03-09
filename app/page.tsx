@@ -5,12 +5,13 @@ import { Logo } from "@/components/Logo";
 import { TextInput } from "@/components/TextInput";
 import { ToneSelector } from "@/components/ToneSelector";
 import { ContextSelector } from "@/components/ContextSelector";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { RewriteOptions } from "@/components/RewriteOptions";
 import { RefinementForm } from "@/components/RefinementForm";
 import { LearningNote } from "@/components/LearningNote";
 import { EmptyState } from "@/components/EmptyState";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
-import type { Context, Tone } from "@/lib/types";
+import type { Context, Tone, Language } from "@/lib/types";
 import type { RewriteOption } from "@/lib/types";
 
 const SAMPLE_TEXT = "Revert the change when you can.";
@@ -47,6 +48,7 @@ export default function Home() {
   const [inputText, setInputText] = useState("");
   const [tone, setTone] = useState<Tone>("Professional");
   const [context, setContext] = useState<Context>("Email");
+  const [language, setLanguage] = useState<Language>("English");
   const [options, setOptions] = useState<RewriteOption[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +71,7 @@ export default function Home() {
       const res = await fetch("/api/rewrite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: inputText.trim(), tone, context }),
+        body: JSON.stringify({ text: inputText.trim(), tone, context, language }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to refine expression. Please try again.");
@@ -93,6 +95,7 @@ export default function Home() {
         body: JSON.stringify({
           selectedText: selectedOption.text,
           feedback,
+          language,
         }),
       });
       const data = await res.json();
@@ -178,6 +181,16 @@ export default function Home() {
             <ContextSelector
               value={context}
               onChange={setContext}
+              disabled={isLoading}
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-[var(--color-muted-strong)] tracking-tight">
+              Output language
+            </label>
+            <LanguageSelector
+              value={language}
+              onChange={setLanguage}
               disabled={isLoading}
             />
           </div>
