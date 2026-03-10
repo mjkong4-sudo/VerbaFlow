@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import type { RewriteOption } from "@/lib/types";
 import { VoiceOutputButton } from "@/components/VoiceOutputButton";
 
@@ -31,6 +32,13 @@ export function RewriteOptions({
   speakingId?: string | null;
   isLoading?: boolean;
 }) {
+  const speakerStopRef = useRef<(() => void) | null>(null);
+
+  const registerSpeakerStop = (stop: () => void) => {
+    speakerStopRef.current?.();
+    speakerStopRef.current = stop;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -93,6 +101,7 @@ export function RewriteOptions({
                   text={opt.text}
                   isSpeaking={speakingId === opt.id}
                   onSpeakingChange={(v) => onSpeak(v ? opt.id : null)}
+                  onRegisterActive={registerSpeakerStop}
                   className="shrink-0"
                 />
               )}

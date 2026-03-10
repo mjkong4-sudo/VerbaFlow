@@ -32,3 +32,8 @@ export interface RewriteOption {
   text: string;
   label?: string;
 }
+
+export interface ArchivedNote {
+  original: string;
+  rewritten: string;
+}

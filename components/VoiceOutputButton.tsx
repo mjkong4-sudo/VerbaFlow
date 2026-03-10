@@ -1,70 +1,129 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function VoiceOutputButton({
   text,
   isSpeaking,
   onSpeakingChange,
+  onRegisterActive,
   className = "",
 }: {
   text: string;
   isSpeaking: boolean;
   onSpeakingChange: (speaking: boolean) => void;
+  /** Call with this button's stop function when starting; parent can call it to stop this when another option starts */
+  onRegisterActive?: (stop: () => void) => void;
   className?: string;
 }) {
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const stop = useCallback(() => {
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
     }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.src = "";
+    }
+    setIsLoading(false);
     onSpeakingChange(false);
   }, [onSpeakingChange]);
 
-  const speak = useCallback(() => {
+  const speak = useCallback(async () => {
     if (!text?.trim()) return;
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (typeof window === "undefined") return;
 
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text.trim());
-    u.rate = 0.95;
-    u.pitch = 1;
-    u.onend = () => onSpeakingChange(false);
-    u.onerror = () => onSpeakingChange(false);
-    utteranceRef.current = u;
-    window.speechSynthesis.speak(u);
+    stop();
+
+    onRegisterActive?.(stop);
     onSpeakingChange(true);
-  }, [text, onSpeakingChange]);
+    setIsLoading(true);
+    abortRef.current = new AbortController();
+
+    try {
+      const res = await fetch("/api/speech", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text.trim() }),
+        signal: abortRef.current.signal,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to generate speech");
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+        onSpeakingChange(false);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+        onSpeakingChange(false);
+      };
+
+      await audio.play();
+      onSpeakingChange(true);
+    } catch (e) {
+      if ((e as Error).name === "AbortError") return;
+      console.error("Voice output error:", e);
+      onSpeakingChange(false);
+    } finally {
+      setIsLoading(false);
+      abortRef.current = null;
+    }
+  }, [text, onSpeakingChange, stop]);
 
   useEffect(() => {
     return () => {
-      if (utteranceRef.current) window.speechSynthesis?.cancel();
+      if (abortRef.current) abortRef.current.abort();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
     };
   }, []);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isSpeaking) stop();
+    if (isSpeaking || isLoading) stop();
     else speak();
   };
+
+  const busy = isSpeaking || isLoading;
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      title={isSpeaking ? "Stop speaking" : "Listen"}
+      disabled={!text?.trim()}
+      title={busy ? "Stop" : "Listen (AI voice)"}
       className={
-        "rounded-lg p-2 transition-colors " +
-        (isSpeaking
+        "rounded-lg p-2 transition-colors disabled:opacity-50 " +
+        (busy
           ? "bg-[var(--color-accent)]/20 text-[var(--color-accent)]"
           : "text-[var(--color-muted)] hover:bg-[var(--color-surface)] hover:text-[var(--color-foreground)]") +
         " " +
         className
       }
-      aria-label={isSpeaking ? "Stop speaking" : "Listen to this option"}
+      aria-label={busy ? "Stop speaking" : "Listen to this option (AI voice)"}
     >
-      {isSpeaking ? (
+      {isLoading ? (
+        <SpinnerIcon className="h-4 w-4 animate-spin" aria-hidden />
+      ) : isSpeaking ? (
         <StopIcon className="h-4 w-4" aria-hidden />
       ) : (
         <SpeakerIcon className="h-4 w-4" aria-hidden />
@@ -87,6 +146,15 @@ function StopIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <rect x="6" y="6" width="12" height="12" rx="2" />
+    </svg>
+  );
+}
+
+function SpinnerIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }

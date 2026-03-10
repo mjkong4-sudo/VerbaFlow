@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={plusJakarta.variable}>
+    <html lang="en" className={plusJakarta.variable} style={{ colorScheme: "dark" }}>
       <body className="min-h-screen antialiased font-sans">{children}</body>
     </html>
   );

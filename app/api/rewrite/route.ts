@@ -30,15 +30,17 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = `You are a clear, natural writing assistant. Your job is to rewrite the user's rough or unclear text into natural expression that fits their chosen tone and context.
 
-Rules:
-- Always output in ${outputLanguage}. All 3 options must be written in ${outputLanguage}.
-- Produce exactly 3 distinct rewrite options, each on a new line.
-- Each option should be a complete, usable version of their message—not a fragment.
-- Vary the options: one might be slightly shorter, one more detailed, one with a different angle, so the user has real choice.
-- Preserve the user's intent and key information; only improve clarity and tone.
-- Do not add preamble, labels, or numbering. Output only the 3 lines of text, one per option.`;
+Critical rules:
+- Always output in ${outputLanguage}. All 3 options must be in ${outputLanguage}.
+- You must produce exactly 3 options. Each option must be a FULL rewrite of the ENTIRE user message—do NOT split or divide the content across options. Option 1 = full message rewritten one way, Option 2 = full message rewritten another way, Option 3 = full message rewritten a third way.
+- Vary the three full rewrites: e.g. one slightly shorter, one more detailed, one different angle—but each covers the whole message.
+- Preserve the user's intent and all key information in every option; only improve clarity and tone.
+- Output format: use exactly this delimiter between options, with no other labels or numbering.
+  After the first full option, write: ---
+  After the second full option, write: ---
+  So the structure is: [full option 1 text]---[full option 2 text]---[full option 3 text]`;
 
-    const userPrompt = `Tone: ${tone || "Professional"}\nContext: ${context || "Email"}\nOutput language: ${outputLanguage}\n\nRewrite this into 3 natural options (in ${outputLanguage}):\n\n${text.trim()}`;
+    const userPrompt = `Tone: ${tone || "Professional"}\nContext: ${context || "Email"}\nOutput language: ${outputLanguage}\n\nRewrite the ENTIRE message below into 3 full alternative versions (in ${outputLanguage}). Each of the 3 options must contain the complete message, not a fragment. Separate the three options with --- only.\n\n${text.trim()}`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -46,7 +48,7 @@ Rules:
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 1024,
+      max_tokens: 4096,
       temperature: 0.7,
     });
 
@@ -56,7 +58,7 @@ Rules:
     }
 
     const options = content
-      .split("\n")
+      .split("---")
       .map((s) => s.trim())
       .filter(Boolean)
       .slice(0, 3);

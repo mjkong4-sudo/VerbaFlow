@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { ImageUpload } from "@/components/ImageUpload";
 import type { Context, Tone, Language } from "@/lib/types";
-import type { RewriteOption } from "@/lib/types";
+import type { RewriteOption, ArchivedNote } from "@/lib/types";
 
 const SAMPLE_TEXT = "Revert the change when you can.";
 
@@ -45,6 +45,24 @@ function ResultsIcon({ className }: { className?: string }) {
   );
 }
 
+function ArchiveIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M21 8v13H3V8" />
+      <path d="M1 3h22v5H1z" />
+      <path d="M10 12h4" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 export default function Home() {
   const [inputText, setInputText] = useState("");
   const [tone, setTone] = useState<Tone>("Professional");
@@ -57,6 +75,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [archivedNotes, setArchivedNotes] = useState<ArchivedNote[]>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const selectedOption = options.find((o) => o.id === selectedId);
 
@@ -67,6 +87,13 @@ export default function Home() {
   const handleRewrite = async () => {
     if (!inputText.trim()) return;
     setError(null);
+    // Archive current learning note before starting a new rewrite
+    if (selectedOption?.text.trim() && inputText.trim()) {
+      setArchivedNotes((prev) => [
+        ...prev,
+        { original: inputText.trim(), rewritten: selectedOption.text },
+      ]);
+    }
     setIsLoading(true);
     try {
       const res = await fetch("/api/rewrite", {
@@ -270,6 +297,40 @@ export default function Home() {
                 />
               </div>
             </>
+          )}
+          {archivedNotes.length > 0 && (
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setHistoryOpen((o) => !o)}
+                className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-sm font-semibold text-[var(--color-foreground)] hover:bg-[var(--color-surface)]/80 transition-colors"
+                aria-expanded={historyOpen}
+              >
+                <span className="flex items-center gap-2">
+                  <ArchiveIcon className="h-4 w-4 text-[var(--color-muted)]" />
+                  History
+                </span>
+                <span className="text-xs font-normal text-[var(--color-muted)]">
+                  {archivedNotes.length} {archivedNotes.length === 1 ? "item" : "items"}
+                </span>
+                <ChevronDownIcon
+                  className={`h-4 w-4 text-[var(--color-muted)] transition-transform ${historyOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {historyOpen && (
+                <ul className="border-t border-[var(--color-border)] divide-y divide-[var(--color-border)] max-h-[280px] overflow-y-auto">
+                  {[...archivedNotes].reverse().map((note, i) => (
+                    <li key={i} className="px-4 py-3">
+                      <p className="text-sm leading-relaxed text-[var(--color-foreground)]">
+                        <span className="text-[var(--color-muted)] line-through">{note.original}</span>
+                        {" → "}
+                        <span className="font-medium text-[var(--color-accent)]">{note.rewritten}</span>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
             {options.length === 0 && !isLoading && (
               <EmptyState

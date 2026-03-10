@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
           content: `Output language: ${outputLanguage}\n\nCurrent text:\n${selectedText.trim()}\n\nRefinement request:\n${feedback.trim()}`,
         },
       ],
-      max_tokens: 512,
+      max_tokens: 2048,
       temperature: 0.5,
     });
 

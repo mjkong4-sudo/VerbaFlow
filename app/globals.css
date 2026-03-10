@@ -4,32 +4,31 @@
   /* VerbaFlow brand */
   --color-primary: #4f46e5;
   --color-primary-hover: #4338ca;
-  --color-primary-light: rgba(79, 70, 229, 0.08);
+  --color-primary-light: rgba(99, 102, 241, 0.2);
   --color-secondary: #3b82f6;
   --color-accent: #34d399;
   --color-accent-muted: rgba(52, 211, 153, 0.15);
-  --color-neutral: #0f172a;
+  --color-neutral: #f1f5f9;
 
-  /* Surfaces – warmer, intentional (Notion/Linear trend) */
-  --color-background: #f8fafc;
-  --color-foreground: #0f172a;
-  --color-card: #ffffff;
-  --color-border: #e2e8f0;
-  --color-border-subtle: #f1f5f9;
-  /* Muted text: chosen for WCAG AA (≥4.5:1 on --color-background) */
-  --color-muted: #64748b;
-  --color-muted-strong: #475569;
-  --color-surface: #f1f5f9;
-  --color-surface-hover: #e2e8f0;
-  --color-error-bg: #fef2f2;
+  /* Surfaces – dark only */
+  --color-background: #0f172a;
+  --color-foreground: #f1f5f9;
+  --color-card: #1e293b;
+  --color-border: #334155;
+  --color-border-subtle: #1e293b;
+  --color-muted: #94a3b8;
+  --color-muted-strong: #cbd5e1;
+  --color-surface: #1e293b;
+  --color-surface-hover: #334155;
+  --color-error-bg: #450a0a;
   --color-error-border: #f87171;
-  --color-error-text: #991b1b;
+  --color-error-text: #fecaca;
 
-  /* Elevation (soft shadows – market standard) */
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
-  --shadow-focus: 0 0 0 3px rgba(79, 70, 229, 0.25);
+  /* Elevation (dark) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  --shadow-focus: 0 0 0 3px rgba(99, 102, 241, 0.5);
 
   /* Typography – 8px rhythm; --font-sans from next/font on html */
   --font-family-sans: var(--font-sans), "Plus Jakarta Sans", system-ui, sans-serif;
@@ -51,52 +50,17 @@
   --radius-2xl: 1.5rem;
   --radius-organic: 2rem;
 
-  /* Soft gradient for background (human, warm) – two blobs for depth */
+  /* Soft gradient for background (dark) */
   --gradient-soft: radial-gradient(
       ellipse 80% 50% at 70% 0%,
-      rgba(79, 70, 229, 0.06) 0%,
+      rgba(99, 102, 241, 0.12) 0%,
       transparent 50%
     ),
     radial-gradient(
       ellipse 60% 40% at 20% 100%,
-      rgba(52, 211, 153, 0.04) 0%,
+      rgba(52, 211, 153, 0.06) 0%,
       transparent 50%
     );
-}
-
-/* Dark mode – app market standard; same variable names for zero component changes */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-neutral: #f1f5f9;
-    --color-background: #0f172a;
-    --color-foreground: #f1f5f9;
-    --color-card: #1e293b;
-    --color-border: #334155;
-    --color-border-subtle: #1e293b;
-    --color-muted: #94a3b8;
-    --color-muted-strong: #cbd5e1;
-    --color-surface: #1e293b;
-    --color-surface-hover: #334155;
-    --color-primary-light: rgba(99, 102, 241, 0.2);
-    --color-accent-muted: rgba(52, 211, 153, 0.15);
-    --color-error-bg: #450a0a;
-    --color-error-border: #f87171;
-    --color-error-text: #fecaca;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
-    --shadow-focus: 0 0 0 3px rgba(99, 102, 241, 0.5);
-    --gradient-soft: radial-gradient(
-        ellipse 80% 50% at 70% 0%,
-        rgba(99, 102, 241, 0.12) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        ellipse 60% 40% at 20% 100%,
-        rgba(52, 211, 153, 0.06) 0%,
-        transparent 50%
-      );
-  }
 }
 
 body {
