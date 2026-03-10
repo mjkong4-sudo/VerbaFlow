@@ -11,6 +11,7 @@ import { RefinementForm } from "@/components/RefinementForm";
 import { LearningNote } from "@/components/LearningNote";
 import { EmptyState } from "@/components/EmptyState";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { ImageUpload } from "@/components/ImageUpload";
 import type { Context, Tone, Language } from "@/lib/types";
 import type { RewriteOption } from "@/lib/types";
 
@@ -151,6 +152,10 @@ export default function Home() {
             <h2 className="text-sm font-semibold text-[var(--color-muted-strong)] tracking-tight">
               Your text
             </h2>
+          <ImageUpload
+            onTextExtracted={(text) => setInputText(text)}
+            disabled={isLoading}
+          />
           <div className="relative">
             <TextInput
               value={inputText}
